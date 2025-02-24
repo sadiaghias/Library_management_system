@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      FLASK_ENV: development
+      DB_HOST: db  # The service name of the database container
+      DB_USER: root  # MySQL username
+      DB_PASSWORD: FatiMa@2003  # MySQL password
+      DB_NAME: library_db  # Database name
+    depends_on:
+      - db
+    networks:
+      - flask-network
+    command: ["./wait-for-it.sh", "db:3306", "--timeout=600", "--", "flask", "run", "--host=0.0.0.0"]
+
+  db:
+    image: mysql:8.0
+    container_name: mysql_db
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: FatiMa@2003
+      MYSQL_DATABASE: library_db
+    volumes:
+      - mysql_data:/var/lib/mysql    
+    networks:
+      - flask-network 
+
+networks:
+  flask-network:
+    driver: bridge
+volumes:
+  - ./init.sql:/docker-entrypoint-initdb.d/init.sql
